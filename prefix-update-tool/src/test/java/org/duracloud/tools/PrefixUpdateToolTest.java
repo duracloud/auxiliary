@@ -5,7 +5,7 @@
  *
  *     http://duracloud.org/license/
  */
-package org.duraspace.tools.storage;
+package org.duracloud.tools;
 
 import org.duracloud.client.ContentStore;
 import org.easymock.EasyMock;

@@ -1,4 +1,4 @@
-package org.duraspace.tools.storage;
+package org.duracloud.tools;
 
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;

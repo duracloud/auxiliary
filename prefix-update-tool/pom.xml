@@ -3,14 +3,14 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
   <parent>
-    <groupId>org.duracloud</groupId>
+    <groupId>org.duracloud.tools</groupId>
     <artifactId>duracloud-auxiliary</artifactId>
     <version>1.0.0</version>
     <relativePath>../pom.xml</relativePath>
   </parent>
 
   <modelVersion>4.0.0</modelVersion>
-  <groupId>org.duracloud</groupId>
+  <groupId>org.duracloud.tools</groupId>
   <artifactId>prefixupdatetool</artifactId>
   <packaging>jar</packaging>
   <version>1.0.0</version>
@@ -18,7 +18,7 @@
 
   <properties>
     <!-- see maven-shade-plugin in root pom.xml -->
-    <mainClass>org.duraspace.tools.storage.PrefixUpdateTool</mainClass>
+    <mainClass>org.duracloud.tools.PrefixUpdateTool</mainClass>
   </properties>
 
   <build>
