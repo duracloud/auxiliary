@@ -11,9 +11,15 @@ import org.duracloud.client.ContentStore;
 import org.duracloud.client.ContentStoreManager;
 import org.duracloud.client.ContentStoreManagerImpl;
 import org.duracloud.common.model.Credential;
+import org.duracloud.common.util.DateUtil;
 import org.duracloud.error.ContentStoreException;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.Iterator;
 
 /*
@@ -60,6 +66,12 @@ public class PrefixUpdateTool {
         this.dryRun = dryRun;
     }
 
+    /**
+     * Kicks off the execution of the tool.
+     *
+     * @throws ContentStoreException
+     * @throws IOException
+     */
     public void run() throws ContentStoreException, IOException {
         System.out.println("-----------------------------------------" +
                            "\nRunning Prefix Update Tool with config:" +
@@ -91,28 +103,69 @@ public class PrefixUpdateTool {
         System.out.println("Prefix Update Tool process complete.");
     }
 
-    private void doUpdate(ContentStore store,
-                           String spaceId,
-                           String oldPrefix,
-                           String newPrefix)
-        throws ContentStoreException, IOException {        
-        System.out.println("Beginning Updates...");
-        
+    /**
+     * Performs the prefix updates. Any content items which begin with the
+     * old prefix value are changed to remove the old prefix and replace it
+     * with the new prefix.
+     *
+     * @param store - DuraCloud storage client
+     * @param spaceId - the space in which to update content items
+     * @param oldPrefix - the prefix to replace
+     * @param newPrefix - the prefix to add
+     * @throws ContentStoreException
+     */
+    protected void doUpdate(ContentStore store,
+                            String spaceId,
+                            String oldPrefix,
+                            String newPrefix)
+        throws ContentStoreException {
         Iterator<String> contentIterator = store.getSpaceContents(spaceId);
-        while(contentIterator.hasNext()) {
-            String contentId = contentIterator.next();
-            if(contentId.startsWith(oldPrefix)) {
-                String newContentId = 
-                    newPrefix + contentId.substring(oldPrefix.length());
-                System.out.println("Updating " + contentId + 
-                                   " to " + newContentId);
-                if(!dryRun) {
-                    store.moveContent(spaceId, contentId, spaceId, newContentId);
+        File contentListing =
+            new File("original-content-listing-" + DateUtil.nowPlain());
+        contentListing.deleteOnExit();
+
+        System.out.println("Retrieving Content Item List...");
+        try(BufferedWriter writer =
+                Files.newBufferedWriter(contentListing.toPath(),
+                                        StandardCharsets.UTF_8)) {
+            while(contentIterator.hasNext()) {
+                String contentId = contentIterator.next();
+                writer.write(contentId);
+                writer.newLine();
+            }
+        } catch (IOException e) {
+            throw new RuntimeException("Unable to write content item listing " +
+                                       "due to error: " + e.getMessage());
+        }
+
+        System.out.println("Beginning Updates...");
+        try(BufferedReader reader =
+                Files.newBufferedReader(contentListing.toPath(),
+                                        StandardCharsets.UTF_8)) {
+            String contentId;
+            while((contentId = reader.readLine()) != null) {
+                if(contentId.startsWith(oldPrefix)) {
+                    String newContentId =
+                        newPrefix + contentId.substring(oldPrefix.length());
+                    System.out.println("Updating " + contentId +
+                                       " to " + newContentId);
+                    if(!dryRun) {
+                        store.moveContent(spaceId, contentId, spaceId, newContentId);
+                    }
                 }
             }
+        } catch(IOException e) {
+            throw new RuntimeException("Error reading content item listing: " +
+                                       e.getMessage());
         }
     }
 
+    /**
+     * Manages the command line execution, including all command line parameters
+     *
+     * @param args - command line arguments
+     * @throws Exception
+     */
     public static void main(String[] args) throws Exception {
         cmdOptions = new Options();
 
@@ -201,6 +254,11 @@ public class PrefixUpdateTool {
             dryRun = true;
         }
 
+        if(oldPrefix.equals(newPrefix)) {
+            System.out.println("The old and new prefix values cannot match!");
+            usage();
+        }
+
         PrefixUpdateTool tool =
             new PrefixUpdateTool(spaceName, host, port, username,
                                  password, storeId, oldPrefix, newPrefix,
@@ -208,6 +266,10 @@ public class PrefixUpdateTool {
         tool.run();
     }
 
+    /**
+     * Called when the command line arguments are not valid. Prints information
+     * about how the tool should be used and exits.
+     */
     private static void usage() {
         HelpFormatter formatter = new HelpFormatter();
         formatter.printHelp("Running the Prefix Update Tool", cmdOptions);
