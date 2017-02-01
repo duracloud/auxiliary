@@ -17,7 +17,7 @@ mvn install
 # Running
 This tool builds into an executable JAR file, which can be run using the following command:
 ```
-java -jar prefixupdatetool-<version>-driver.jar
+java -jar prefix-update-tool-<version>-driver.jar
 ```
 This will display help text that indicates the necessary parameters.
 
