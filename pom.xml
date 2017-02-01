@@ -54,6 +54,7 @@
 
   <modules>
     <module>prefix-update-tool</module>
+    <module>bridge-report-capture-tool</module>
   </modules>
 
   <profiles>
