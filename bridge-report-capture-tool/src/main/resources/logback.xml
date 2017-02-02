@@ -8,8 +8,8 @@
     </encoder>
   </appender>
 
-  <root level="INFO">
+  <logger name="org.duracloud.tools" level="INFO">
     <appender-ref ref="STDOUT" />
-  </root>
+  </logger>
 
 </configuration>

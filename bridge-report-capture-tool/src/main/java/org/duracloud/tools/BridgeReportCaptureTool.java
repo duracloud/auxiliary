@@ -57,11 +57,13 @@ public class BridgeReportCaptureTool {
      * @throws IOException
      */
     public void run(Properties props) throws IOException {
+        EncryptionUtil enc = new EncryptionUtil();
+
         String bridgeUrl = props.getProperty(BRIDGE_URL_PROP);
-        String bridgeUsername = props.getProperty(BRIDGE_USERNAME_PROP);
-        String bridgePassword = props.getProperty(BRIDGE_PASSWORD_PROP);
-        String s3AccessKey = props.getProperty(S3_ACCESS_KEY_PROP);
-        String s3SecretKey = props.getProperty(S3_SECRET_KEY_PROP);
+        String bridgeUsername = enc.decrypt(props.getProperty(BRIDGE_USERNAME_PROP));
+        String bridgePassword = enc.decrypt(props.getProperty(BRIDGE_PASSWORD_PROP));
+        String s3AccessKey = enc.decrypt(props.getProperty(S3_ACCESS_KEY_PROP));
+        String s3SecretKey = enc.decrypt(props.getProperty(S3_SECRET_KEY_PROP));
         String s3BucketName = props.getProperty(S3_BUCKET_NAME_PROP);
 
         if(null == bridgeUrl ||
@@ -219,12 +221,14 @@ public class BridgeReportCaptureTool {
                     usage();
                 }
 
+                EncryptionUtil enc = new EncryptionUtil();
+
                 Properties props = new Properties();
                 props.put(BRIDGE_URL_PROP, bridgeUrl);
-                props.put(BRIDGE_USERNAME_PROP, bridgeUsername);
-                props.put(BRIDGE_PASSWORD_PROP, bridgePassword);
-                props.put(S3_ACCESS_KEY_PROP, s3AccessKey);
-                props.put(S3_SECRET_KEY_PROP, s3SecretKey);
+                props.put(BRIDGE_USERNAME_PROP, enc.encrypt(bridgeUsername));
+                props.put(BRIDGE_PASSWORD_PROP, enc.encrypt(bridgePassword));
+                props.put(S3_ACCESS_KEY_PROP, enc.encrypt(s3AccessKey));
+                props.put(S3_SECRET_KEY_PROP, enc.encrypt(s3SecretKey));
                 props.put(S3_BUCKET_NAME_PROP, s3BucketName);
 
                 writeProps(propsFilePath, props);
