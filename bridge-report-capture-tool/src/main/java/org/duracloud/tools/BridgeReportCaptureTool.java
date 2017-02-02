@@ -27,6 +27,8 @@ import org.duracloud.common.model.Credential;
 import org.duracloud.common.util.DateUtil;
 import org.duracloud.common.util.EncryptionUtil;
 import org.duracloud.common.web.RestHttpHelper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /*
  * BridgeReportCaptureTool - Provides a simple way to capture a DuraCloud
@@ -36,6 +38,8 @@ import org.duracloud.common.web.RestHttpHelper;
  * Date: Jan 30, 2017
  */
 public class BridgeReportCaptureTool {
+
+    private final Logger log = LoggerFactory.getLogger(BridgeReportCaptureTool.class);
 
     protected static final String BRIDGE_URL_PROP = "bridge-url";
     protected static final String BRIDGE_USERNAME_PROP = "bridge-username";
@@ -88,7 +92,7 @@ public class BridgeReportCaptureTool {
                                        e.getMessage());
         }
 
-        String reportName = "dcv-snapshot-report-" + DateUtil.nowShort();
+        String reportName = "dcv-snapshot-report-" + DateUtil.nowShort() + ".json";
 
         try {
             client.putObject(s3BucketName, reportName, bridgeReport, null);
@@ -97,8 +101,8 @@ public class BridgeReportCaptureTool {
                                        e.getMessage());
         }
 
-        System.out.println("Successfully wrote bridge reprot " + reportName +
-                           " to S3 bucket " + s3BucketName);
+        log.info("Successfully wrote bridge report " + reportName +
+                 " to S3 bucket " + s3BucketName);
     }
 
     private static void createArgsParser() {
