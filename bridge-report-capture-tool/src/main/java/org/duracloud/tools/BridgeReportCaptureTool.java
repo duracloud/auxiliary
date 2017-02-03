@@ -52,13 +52,15 @@ public class BridgeReportCaptureTool {
     private static EncryptionUtil encUtil = new EncryptionUtil();
 
     /**
-     * Kicks off the execution of the tool.
+     * Kicks off the execution of the tool. Handles retrieving the bridge report and
+     * storing that report in S3.
      *
      * @throws IOException
      */
     public void run(Properties props) throws IOException {
         EncryptionUtil enc = new EncryptionUtil();
 
+        // Pull config details from properties, decrypt where needed
         String bridgeUrl = props.getProperty(BRIDGE_URL_PROP);
         String bridgeUsername = enc.decrypt(props.getProperty(BRIDGE_USERNAME_PROP));
         String bridgePassword = enc.decrypt(props.getProperty(BRIDGE_PASSWORD_PROP));
@@ -107,6 +109,9 @@ public class BridgeReportCaptureTool {
                  " to S3 bucket " + s3BucketName);
     }
 
+    /*
+     * Builds parser for reading command line arguments
+     */
     private static void createArgsParser() {
         cmdOptions = new Options();
 
@@ -150,6 +155,9 @@ public class BridgeReportCaptureTool {
         cmdOptions.addOption(s3BucketNameOption);
     }
 
+    /*
+     * Parses command line arguments
+     */
     private static CommandLine parseArgs(String[] args) {
         try {
             CommandLineParser parser = new PosixParser();
@@ -159,6 +167,9 @@ public class BridgeReportCaptureTool {
         }
     }
 
+    /*
+     * Reads tool configuration properties from a file
+     */
     protected static Properties readProps(String propsFilePath) throws IOException {
         File propsFile = new File(propsFilePath);
         if(!propsFile.exists()) {
@@ -174,6 +185,9 @@ public class BridgeReportCaptureTool {
         return props;
     }
 
+    /*
+     * Writes tool configuration properties to a file
+     */
     protected static void writeProps(String propsFilePath, Properties props)
         throws IOException {
         File propsFile = new File(propsFilePath);
@@ -193,13 +207,13 @@ public class BridgeReportCaptureTool {
         try {
             createArgsParser();
 
-            if (args.length == 2) {
+            if (args.length == 2) { // Capture report mode
                 CommandLine cmd = parseArgs(args);
                 String propsFilePath = cmd.getOptionValue("f");
                 Properties props = readProps(propsFilePath);
                 BridgeReportCaptureTool tool = new BridgeReportCaptureTool();
                 tool.run(props);
-            } else if (args.length > 2) {
+            } else if (args.length > 2) { // Write properties mode
                 CommandLine cmd = parseArgs(args);
                 String propsFilePath = cmd.getOptionValue("f");
                 String bridgeUrl = cmd.getOptionValue("r");
@@ -234,6 +248,8 @@ public class BridgeReportCaptureTool {
                 writeProps(propsFilePath, props);
                 System.out.println("Successfully wrote properties file to: " +
                                    propsFilePath);
+            } else {
+                usage();
             }
         } catch(Exception e) {
             System.out.println(e.getMessage());

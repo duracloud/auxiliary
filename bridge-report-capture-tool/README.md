@@ -5,9 +5,9 @@ Provides a simple way to capture a DuraCloud bridge report and store that report
 
 # Dependencies
 This tool has the following dependencies
-* The DuraCloud service
+* The DuraCloud bridge application (running externally)
 * Java 8+
-* AWS account, with API credentials. The credentials must provide write access to at least one S3 bucket. 
+* An AWS account, with API credentials. The credentials must provide write access to at least one S3 bucket. 
 
 # Building
 Once cloned, this tool can be built using:
