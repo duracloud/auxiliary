@@ -1,1 +1,11 @@
+.classpath
+.idea
+.project
+.settings
+.DS_STORE
+*.iml
+*.ipr
+*.iws
+target/
 prefix-update-tool/target/
+
