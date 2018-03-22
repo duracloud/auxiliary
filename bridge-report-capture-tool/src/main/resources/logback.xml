@@ -9,7 +9,7 @@
   </appender>
 
   <logger name="org.duracloud.tools" level="INFO">
-    <appender-ref ref="STDOUT" />
+    <appender-ref ref="STDOUT"/>
   </logger>
 
 </configuration>

@@ -1,5 +1,13 @@
 package org.duracloud.tools;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.util.Iterator;
+
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.CommandLineParser;
 import org.apache.commons.cli.HelpFormatter;
@@ -13,14 +21,6 @@ import org.duracloud.client.ContentStoreManagerImpl;
 import org.duracloud.common.model.Credential;
 import org.duracloud.common.util.DateUtil;
 import org.duracloud.error.ContentStoreException;
-
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.util.Iterator;
 
 /*
  * Prefix Update Tool - Provides a simple way to update the prefix value on a
@@ -46,15 +46,15 @@ public class PrefixUpdateTool {
 
     private static Options cmdOptions;
 
-    public PrefixUpdateTool (String spaceName,
-                             String host,
-                             String port,
-                             String username,
-                             String password,
-                             String storeId,
-                             String oldPrefix,
-                             String newPrefix,
-                             boolean dryRun) {
+    public PrefixUpdateTool(String spaceName,
+                            String host,
+                            String port,
+                            String username,
+                            String password,
+                            String storeId,
+                            String oldPrefix,
+                            String newPrefix,
+                            boolean dryRun) {
         this.spaceName = spaceName;
         this.host = host;
         this.port = port;
@@ -80,8 +80,7 @@ public class PrefixUpdateTool {
                            "\nport=" + port +
                            "\nprefix to replace=" + oldPrefix +
                            "\nnew prefix=" + newPrefix +
-                           (dryRun?"\nThis execution is a DRY RUN - " +
-                                   "no changes will be made!":"") +
+                           (dryRun ? "\nThis execution is a DRY RUN - no changes will be made!" : "") +
                            "\n-----------------------------------------");
 
         System.out.println("Setting up tool...");
@@ -89,9 +88,9 @@ public class PrefixUpdateTool {
             new ContentStoreManagerImpl(host, port, DEFAULT_CONTEXT);
         Credential credential = new Credential(username, password);
         storeManager.login(credential);
-        
+
         ContentStore store;
-        if(storeId == null || storeId.equals("")) {
+        if (storeId == null || storeId.equals("")) {
             store = storeManager.getPrimaryContentStore();
             this.storeId = store.getStoreId();
         } else {
@@ -108,8 +107,8 @@ public class PrefixUpdateTool {
      * old prefix value are changed to remove the old prefix and replace it
      * with the new prefix.
      *
-     * @param store - DuraCloud storage client
-     * @param spaceId - the space in which to update content items
+     * @param store     - DuraCloud storage client
+     * @param spaceId   - the space in which to update content items
      * @param oldPrefix - the prefix to replace
      * @param newPrefix - the prefix to add
      * @throws ContentStoreException
@@ -125,10 +124,10 @@ public class PrefixUpdateTool {
         contentListing.deleteOnExit();
 
         System.out.println("Retrieving Content Item List...");
-        try(BufferedWriter writer =
-                Files.newBufferedWriter(contentListing.toPath(),
-                                        StandardCharsets.UTF_8)) {
-            while(contentIterator.hasNext()) {
+        try (BufferedWriter writer =
+                 Files.newBufferedWriter(contentListing.toPath(),
+                                         StandardCharsets.UTF_8)) {
+            while (contentIterator.hasNext()) {
                 String contentId = contentIterator.next();
                 writer.write(contentId);
                 writer.newLine();
@@ -139,22 +138,22 @@ public class PrefixUpdateTool {
         }
 
         System.out.println("Beginning Updates...");
-        try(BufferedReader reader =
-                Files.newBufferedReader(contentListing.toPath(),
-                                        StandardCharsets.UTF_8)) {
+        try (BufferedReader reader =
+                 Files.newBufferedReader(contentListing.toPath(),
+                                         StandardCharsets.UTF_8)) {
             String contentId;
-            while((contentId = reader.readLine()) != null) {
-                if(contentId.startsWith(oldPrefix)) {
+            while ((contentId = reader.readLine()) != null) {
+                if (contentId.startsWith(oldPrefix)) {
                     String newContentId =
                         newPrefix + contentId.substring(oldPrefix.length());
                     System.out.println("Updating " + contentId +
                                        " to " + newContentId);
-                    if(!dryRun) {
+                    if (!dryRun) {
                         store.moveContent(spaceId, contentId, spaceId, newContentId);
                     }
                 }
             }
-        } catch(IOException e) {
+        } catch (IOException e) {
             throw new RuntimeException("Error reading content item listing: " +
                                        e.getMessage());
         }
@@ -170,60 +169,59 @@ public class PrefixUpdateTool {
         cmdOptions = new Options();
 
         Option spaceNameOption =
-           new Option("s", "spacename", true, "the name of the space in " +
-                      "which content will be updated");
+            new Option("s", "spacename", true,
+                       "the name of the space in which content will be updated");
         spaceNameOption.setRequired(true);
         cmdOptions.addOption(spaceNameOption);
 
         Option hostOption =
-           new Option("h", "host", true,
-                      "the host address of the DuraCloud " +
-                      "DuraStore application");
+            new Option("h", "host", true,
+                       "the host address of the DuraCloud DuraStore application");
         hostOption.setRequired(true);
         cmdOptions.addOption(hostOption);
 
         Option portOption =
-           new Option("t", "port", true,
-                      "the port of the DuraCloud DuraStore application " +
-                      "(optional, default value is " + DEFAULT_PORT + ")");
+            new Option("t", "port", true,
+                       "the port of the DuraCloud DuraStore application " +
+                       "(optional, default value is " + DEFAULT_PORT + ")");
         portOption.setRequired(false);
         cmdOptions.addOption(portOption);
 
         Option usernameOption =
-           new Option("u", "username", true,
-                      "the username necessary to perform writes to DuraStore");
+            new Option("u", "username", true,
+                       "the username necessary to perform writes to DuraStore");
         usernameOption.setRequired(true);
         cmdOptions.addOption(usernameOption);
 
         Option passwordOption =
-           new Option("p", "password", true,
-                      "the password necessary to perform writes to DuraStore");
+            new Option("p", "password", true,
+                       "the password necessary to perform writes to DuraStore");
         passwordOption.setRequired(true);
         cmdOptions.addOption(passwordOption);
 
         Option storeIdOption =
-           new Option("i", "store-id", true, "the ID of the store (optional)");
+            new Option("i", "store-id", true,
+                       "the ID of the store (optional)");
         storeIdOption.setRequired(false);
         cmdOptions.addOption(storeIdOption);
 
         Option oldPrefixOption =
-           new Option("o", "old-prefix", true,
-                      "the original prefix that should be replaced - " + 
-                      "only files with this prefix will be updated");
+            new Option("o", "old-prefix", true,
+                       "the original prefix that should be replaced - " +
+                       "only files with this prefix will be updated");
         oldPrefixOption.setRequired(true);
         cmdOptions.addOption(oldPrefixOption);
 
         Option newPrefixOption =
-           new Option("n", "new-prefix", true,
-                      "the new prefix to apply");
+            new Option("n", "new-prefix", true,
+                       "the new prefix to apply");
         newPrefixOption.setRequired(true);
         cmdOptions.addOption(newPrefixOption);
 
         Option dryRunOption =
-           new Option("d", "dry-run", false,
-                      "designate this execution as a dry run, no changes " +
-                      "will be made, but output will indicate what would " +
-                      "have happened");
+            new Option("d", "dry-run", false,
+                       "designate this execution as a dry run, no changes " +
+                       "will be made, but output will indicate what would have happened");
         dryRunOption.setRequired(false);
         cmdOptions.addOption(dryRunOption);
 
@@ -231,7 +229,7 @@ public class PrefixUpdateTool {
         try {
             CommandLineParser parser = new PosixParser();
             cmd = parser.parse(cmdOptions, args);
-        } catch(ParseException e) {
+        } catch (ParseException e) {
             System.out.println(e.getMessage());
             usage();
         }
@@ -245,16 +243,16 @@ public class PrefixUpdateTool {
         String newPrefix = cmd.getOptionValue("n");
 
         String port = cmd.getOptionValue("t");
-        if(port == null || port.equals("")) {
+        if (port == null || port.equals("")) {
             port = DEFAULT_PORT;
         }
 
         boolean dryRun = false;
-        if(cmd.hasOption("d")) {
+        if (cmd.hasOption("d")) {
             dryRun = true;
         }
 
-        if(oldPrefix.equals(newPrefix)) {
+        if (oldPrefix.equals(newPrefix)) {
             System.out.println("The old and new prefix values cannot match!");
             usage();
         }

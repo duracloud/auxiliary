@@ -7,20 +7,20 @@
  */
 package org.duracloud.tools;
 
+import java.util.LinkedList;
+import java.util.List;
+
 import org.duracloud.client.ContentStore;
 import org.easymock.EasyMock;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.LinkedList;
-import java.util.List;
-
 /**
  * Performs tests on the prefix update tool.
  *
  * @author Bill Branan
- *         Date: 1/9/2015
+ * Date: 1/9/2015
  */
 public class PrefixUpdateToolTest {
 
