@@ -68,12 +68,12 @@ public class BridgeReportCaptureTool {
         String s3SecretKey = enc.decrypt(props.getProperty(S3_SECRET_KEY_PROP));
         String s3BucketName = props.getProperty(S3_BUCKET_NAME_PROP);
 
-        if(null == bridgeUrl ||
-           null == bridgeUsername ||
-           null == bridgePassword ||
-           null == s3AccessKey ||
-           null == s3SecretKey ||
-           null == s3BucketName) {
+        if (null == bridgeUrl ||
+            null == bridgeUsername ||
+            null == bridgePassword ||
+            null == s3AccessKey ||
+            null == s3SecretKey ||
+            null == s3BucketName) {
             throw new RuntimeException("Properties file is incomplete.");
         }
 
@@ -88,10 +88,10 @@ public class BridgeReportCaptureTool {
         try {
             RestHttpHelper.HttpResponse bridgeReportResponse = httpHelper.get(bridgeUrl);
             bridgeReport = bridgeReportResponse.getResponseStream();
-            if(null == bridgeReport) {
+            if (null == bridgeReport) {
                 throw new RuntimeException("Call to bridge to request report failed.");
             }
-        } catch(Exception e) {
+        } catch (Exception e) {
             throw new RuntimeException("Failed to retrieve bridge report due to: " +
                                        e.getMessage());
         }
@@ -116,14 +116,14 @@ public class BridgeReportCaptureTool {
         cmdOptions = new Options();
 
         Option propsFileOption =
-            new Option("f", "props-file", true, "the full path to the properties file " +
-                                                "where tool configuration params reside");
+            new Option("f", "props-file", true,
+                       "the full path to the properties file where tool configuration params reside");
         propsFileOption.setRequired(true);
         cmdOptions.addOption(propsFileOption);
 
         Option bridgeUrlOption =
-            new Option("r", "bridge-url", true, "the URL at which the bridge app " +
-                                               "can be found");
+            new Option("r", "bridge-url", true,
+                       "the URL at which the bridge app can be found");
         bridgeUrlOption.setRequired(false);
         cmdOptions.addOption(bridgeUrlOption);
 
@@ -162,7 +162,7 @@ public class BridgeReportCaptureTool {
         try {
             CommandLineParser parser = new PosixParser();
             return parser.parse(cmdOptions, args);
-        } catch(ParseException e) {
+        } catch (ParseException e) {
             throw new RuntimeException(e);
         }
     }
@@ -172,14 +172,13 @@ public class BridgeReportCaptureTool {
      */
     protected static Properties readProps(String propsFilePath) throws IOException {
         File propsFile = new File(propsFilePath);
-        if(!propsFile.exists()) {
-            throw new FileNotFoundException("No file exists at path: " +
-                                            propsFilePath);
+        if (!propsFile.exists()) {
+            throw new FileNotFoundException("No file exists at path: " + propsFilePath);
         }
 
         Properties props = new Properties();
-        try(Reader propsReader = new InputStreamReader(new FileInputStream(propsFile),
-                                                       StandardCharsets.UTF_8)) {
+        try (Reader propsReader = new InputStreamReader(new FileInputStream(propsFile),
+                                                        StandardCharsets.UTF_8)) {
             props.load(propsReader);
         }
         return props;
@@ -191,8 +190,8 @@ public class BridgeReportCaptureTool {
     protected static void writeProps(String propsFilePath, Properties props)
         throws IOException {
         File propsFile = new File(propsFilePath);
-        try(Writer propsFileWriter = new OutputStreamWriter(new FileOutputStream(propsFile),
-                                                            StandardCharsets.UTF_8)) {
+        try (Writer propsFileWriter = new OutputStreamWriter(new FileOutputStream(propsFile),
+                                                             StandardCharsets.UTF_8)) {
             props.store(propsFileWriter, null);
         }
     }
@@ -223,13 +222,13 @@ public class BridgeReportCaptureTool {
                 String s3SecretKey = cmd.getOptionValue("s");
                 String s3BucketName = cmd.getOptionValue("b");
 
-                if(null == propsFilePath ||
-                   null == bridgeUrl ||
-                   null == bridgeUsername ||
-                   null == bridgePassword ||
-                   null == s3AccessKey ||
-                   null == s3SecretKey ||
-                   null == s3BucketName) {
+                if (null == propsFilePath ||
+                    null == bridgeUrl ||
+                    null == bridgeUsername ||
+                    null == bridgePassword ||
+                    null == s3AccessKey ||
+                    null == s3SecretKey ||
+                    null == s3BucketName) {
                     System.out.println("To write properties file, " +
                                        "all parameters are required.");
                     usage();
@@ -251,7 +250,7 @@ public class BridgeReportCaptureTool {
             } else {
                 usage();
             }
-        } catch(Exception e) {
+        } catch (Exception e) {
             System.out.println(e.getMessage());
             usage();
         }

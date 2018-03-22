@@ -7,12 +7,6 @@
  */
 package org.duracloud.tools;
 
-import java.io.File;
-import java.util.Properties;
-
-import org.apache.commons.io.FileUtils;
-import org.junit.Test;
-
 import static org.duracloud.tools.BridgeReportCaptureTool.BRIDGE_PASSWORD_PROP;
 import static org.duracloud.tools.BridgeReportCaptureTool.BRIDGE_URL_PROP;
 import static org.duracloud.tools.BridgeReportCaptureTool.BRIDGE_USERNAME_PROP;
@@ -21,11 +15,17 @@ import static org.duracloud.tools.BridgeReportCaptureTool.S3_BUCKET_NAME_PROP;
 import static org.duracloud.tools.BridgeReportCaptureTool.S3_SECRET_KEY_PROP;
 import static org.junit.Assert.assertEquals;
 
+import java.io.File;
+import java.util.Properties;
+
+import org.apache.commons.io.FileUtils;
+import org.junit.Test;
+
 /**
  * Performs tests on the bridge report capture tool.
  *
  * @author Bill Branan
- *         Date: 2/1/2017
+ * Date: 2/1/2017
  */
 public class BridgeReportCaptureToolTest {
 
@@ -68,7 +68,7 @@ public class BridgeReportCaptureToolTest {
             assertEquals(s3SecretValue, readProps.get((S3_SECRET_KEY_PROP)));
             assertEquals(s3BucketValue, readProps.get((S3_BUCKET_NAME_PROP)));
         } finally {
-            if(propsFile.exists()) {
+            if (propsFile.exists()) {
                 FileUtils.forceDelete(propsFile);
             }
         }
