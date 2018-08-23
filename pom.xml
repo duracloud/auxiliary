@@ -55,6 +55,7 @@
   <modules>
     <module>prefix-update-tool</module>
     <module>bridge-report-capture-tool</module>
+    <module>copy-content-tool</module>
   </modules>
 
   <profiles>
@@ -226,10 +227,10 @@
         </executions>
         <configuration>
           <configLocation>
-            https://raw.githubusercontent.com/duraspace/resources/master/checkstyle/duraspace-checkstyle.xml
+            https://raw.githubusercontent.com/duraspace/codestyle/master/duraspace-checkstyle.xml
           </configLocation>
           <suppressionsLocation>
-            https://raw.githubusercontent.com/duraspace/resources/master/checkstyle/duraspace-checkstyle-suppressions.xml
+            https://raw.githubusercontent.com/duraspace/codestyle/master/duraspace-checkstyle-suppressions.xml
           </suppressionsLocation>
           <encoding>UTF-8</encoding>
           <consoleOutput>true</consoleOutput>
