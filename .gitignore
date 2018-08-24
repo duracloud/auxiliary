@@ -7,5 +7,5 @@
 *.ipr
 *.iws
 target/
-prefix-update-tool/target/
+*/target/
 
