@@ -40,7 +40,6 @@ public class TranscodingJobGeneratorTest extends JobGeneratorTestBase {
     private AmazonS3 s3Client;
     private AmazonElasticTranscoder transcoderClient;
 
-    private String awsProfile = "aws-profile";
     private String bucketName = "bucket-name";
     private String pipelineId = "pipeline-id";
 
@@ -160,7 +159,7 @@ public class TranscodingJobGeneratorTest extends JobGeneratorTestBase {
     @Test
     public void testDryRun() throws Exception {
         TranscodingJobGenerator generator =
-            new TranscodingJobGenerator(awsProfile, bucketName, pipelineId, false, true);
+            new TranscodingJobGenerator(bucketName, pipelineId, false, true);
         generator.setS3Client(s3Client);
         generator.setTranscoderClient(transcoderClient);
 
