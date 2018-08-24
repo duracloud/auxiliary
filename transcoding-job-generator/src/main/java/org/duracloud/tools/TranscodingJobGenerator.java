@@ -46,16 +46,16 @@ public class TranscodingJobGenerator {
      * https://docs.aws.amazon.com/elastictranscoder/latest/developerguide/system-presets.html
      */
     // System Preset: HLS Audio - 160k
-    private static final String AUDIO_PRESET_ID = "1351620000001-200060";
+    protected static final String AUDIO_PRESET_ID = "1351620000001-200060";
     // System Preset: HLS Video - 2M
-    private static final String VIDEO_PRESET_ID = "1351620000001-200015";
+    protected static final String VIDEO_PRESET_ID = "1351620000001-200015";
 
     // Using Apple recommended segment duration, see:
     // https://developer.apple.com/documentation/http_live_streaming/hls_authoring_specification_for_apple_devices
-    private static final String SEGMENT_DURATION = "6";
+    protected static final String SEGMENT_DURATION = "6";
 
     // Using playlist format from latest HLS version
-    private static final String PLAYLIST_FORMAT = "HLSv4";
+    protected static final String PLAYLIST_FORMAT = "HLSv4";
 
     public TranscodingJobGenerator(String awsCredentialsProfileName,
                                    String bucketName,
@@ -147,6 +147,7 @@ public class TranscodingJobGenerator {
                 CreateJobResult createJobResult = transcoderClient.createJob(createJobRequest);
                 System.out.println("Transcoding Job created for: " + contentId +
                                    "; current status: " + createJobResult.getJob().getStatus());
+                waitMs(500); // Wait half a second to limit create job requests to 2 per second
             }
 
             if (verbose) {
@@ -155,6 +156,19 @@ public class TranscodingJobGenerator {
         }
 
         System.out.println("\nTranscoding Job Generator process complete.");
+    }
+
+    /**
+     * Causes the current thread to wait for a given number of milliseconds.
+     *
+     * @param milliseconds - the number of milliseconds to wait
+     */
+    public static void waitMs(long milliseconds) {
+        try {
+            Thread.sleep(milliseconds);
+        } catch (InterruptedException e) {
+            // Return on interruption
+        }
     }
 
     /**

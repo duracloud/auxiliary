@@ -12,6 +12,8 @@ import com.amazonaws.services.s3.model.ObjectListing;
 import com.amazonaws.services.s3.model.S3ObjectSummary;
 
 /**
+ * Provides a way to iterate through all items in an S3 bucket.
+ *
  * @author Bill Branan
  * Date: Aug 23, 2018
  */
@@ -22,7 +24,6 @@ public class ContentIterator implements Iterator<String> {
 
     private int index;
     private List<String> contentList;
-    private long maxResults;
 
     public ContentIterator(AmazonS3 s3Client, String bucketName) {
         index = 0;
