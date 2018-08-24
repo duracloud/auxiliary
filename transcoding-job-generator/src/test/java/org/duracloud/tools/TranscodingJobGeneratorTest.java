@@ -67,7 +67,7 @@ public class TranscodingJobGeneratorTest extends JobGeneratorTestBase {
     @Test
     public void testJobGenerator() throws Exception {
         TranscodingJobGenerator generator =
-            new TranscodingJobGenerator(awsProfile, bucketName, pipelineId, false, false);
+            new TranscodingJobGenerator(bucketName, pipelineId, false, false);
         generator.setS3Client(s3Client);
         generator.setTranscoderClient(transcoderClient);
 

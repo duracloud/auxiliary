@@ -57,6 +57,9 @@ public class TranscodingJobGenerator {
     // Using playlist format from latest HLS version
     protected static final String PLAYLIST_FORMAT = "HLSv4";
 
+    /**
+     * Use to set up tool with AWS clients that are based on a locally defined profile
+     */
     public TranscodingJobGenerator(String awsCredentialsProfileName,
                                    String bucketName,
                                    String pipelineId,
@@ -82,6 +85,19 @@ public class TranscodingJobGenerator {
             AmazonS3ClientBuilder.standard().withCredentials(credentialsProvider).build());
         setTranscoderClient(
             AmazonElasticTranscoderClientBuilder.standard().withCredentials(credentialsProvider).build());
+    }
+
+    /**
+     * Use to create tool and set AWS clients independently (e.g. for testing)
+     */
+    protected TranscodingJobGenerator(String bucketName,
+                                      String pipelineId,
+                                      boolean verbose,
+                                      boolean dryRun) {
+        this.bucketName = bucketName;
+        this.pipelineId = pipelineId;
+        this.verbose = verbose;
+        this.dryRun = dryRun;
     }
 
     protected void setS3Client(AmazonS3 s3Client) {
