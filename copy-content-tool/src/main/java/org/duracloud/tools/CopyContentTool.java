@@ -97,19 +97,14 @@ public class CopyContentTool {
             store = storeManager.getContentStore( storeId );
         }
 
-        final List<String> spaces;
+        final List<String> spaces = new LinkedList<>();
 
-        if (this.spaceListFilePath == null) {
-            LOGGER.debug( "spaceListFilePath is not set; all spaces associated with the account will be copied..." );
-            spaces = store.getSpaces();
-        } else {
-            final File file = new File( this.spaceListFilePath );
-            if (!file.exists()) {
-                throw new FileNotFoundException( "The spaces list file does not exist at " + this.spaceListFilePath );
-            }
+        final File file = new File( this.spaceListFilePath );
+        if (!file.exists()) {
+            throw new FileNotFoundException( "The spaces list file does not exist at " + this.spaceListFilePath );
+        }
 
-            spaces = new LinkedList<>();
-            BufferedReader is = new BufferedReader( new InputStreamReader( IOUtil.getFileStream( file ) ) );
+        try (BufferedReader is = new BufferedReader( new InputStreamReader( IOUtil.getFileStream( file ) ) )) {
             String line = null;
             while ((line = is.readLine()) != null) {
                 final String spaceId = line.trim();
@@ -194,7 +189,7 @@ public class CopyContentTool {
         Option spaceFileOption =
             new Option( "s", "space-list", true,
                         "the path to the file containing a list of spaces to be copied" );
-        spaceFileOption.setRequired( false );
+        spaceFileOption.setRequired( true );
         cmdOptions.addOption( spaceFileOption );
 
         Option hostOption =
