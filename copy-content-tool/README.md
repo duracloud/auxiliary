@@ -1,7 +1,16 @@
-Prefix Update Tool
+Copy Content Tool
 ==================
 
-Provides a simple way to update the prefix value on a set of content items in a DuraCloud space
+Provides a simple way to copy content from one set of spaces to another set of spaces. 
+If you do not provide a list of spaces in a separate file,  all spaces will be copied 
+with the following algorithm: 
+
+If the space matches the regex "^(.*)-(open|campus|closed)$",  content will be copied from the source space
+to a new space (open|campus|closed) with a contenId of "(.*)/${source-content-id}. 
+
+So for example, given the space  "space1234-open" and a content ID of my-mp3-file.mp3, the tool
+will create a space name "open" if it doesn't already exist and copy the content item  into a new content item with ID
+"space1234/my-mp3-file.mp3". 
 
 # Dependencies
 This tool has the following dependencies
