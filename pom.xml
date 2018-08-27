@@ -55,6 +55,7 @@
   <modules>
     <module>prefix-update-tool</module>
     <module>bridge-report-capture-tool</module>
+    <module>transcoding-job-generator</module>
     <module>copy-content-tool</module>
   </modules>
 
@@ -125,6 +126,8 @@
     <log.level.default>INFO</log.level.default>
     <log.level>${log.level.default}</log.level>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <slf4j.version>1.7.6</slf4j.version>
+    <aws.sdk.version>1.11.393</aws.sdk.version>
   </properties>
 
   <distributionManagement>
@@ -292,6 +295,30 @@
     <dependencies>
 
       <dependency>
+        <groupId>com.amazonaws</groupId>
+        <artifactId>aws-java-sdk-s3</artifactId>
+        <version>${aws.sdk.version}</version>
+        <exclusions>
+          <exclusion>
+            <groupId>commons-logging</groupId>
+            <artifactId>commons-logging</artifactId>
+          </exclusion>
+        </exclusions>
+      </dependency>
+
+      <dependency>
+        <groupId>com.amazonaws</groupId>
+        <artifactId>aws-java-sdk-elastictranscoder</artifactId>
+        <version>${aws.sdk.version}</version>
+        <exclusions>
+          <exclusion>
+            <groupId>commons-logging</groupId>
+            <artifactId>commons-logging</artifactId>
+          </exclusion>
+        </exclusions>
+      </dependency>
+
+      <dependency>
         <groupId>junit</groupId>
         <artifactId>junit</artifactId>
         <version>4.10</version>
@@ -306,13 +333,19 @@
       <dependency>
         <groupId>org.easymock</groupId>
         <artifactId>easymock</artifactId>
-        <version>3.2</version>
+        <version>3.4</version>
       </dependency>
 
       <dependency>
         <groupId>org.slf4j</groupId>
         <artifactId>slf4j-api</artifactId>
-        <version>1.7.6</version>
+        <version>${slf4j.version}</version>
+      </dependency>
+
+      <dependency>
+        <groupId>org.slf4j</groupId>
+        <artifactId>jcl-over-slf4j</artifactId>
+        <version>${slf4j.version}</version>
       </dependency>
 
       <dependency>
