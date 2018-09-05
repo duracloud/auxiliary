@@ -1,6 +1,13 @@
 package org.duracloud.tools;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.List;
 
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.auth.profile.ProfileCredentialsProvider;
@@ -21,6 +28,8 @@ import org.apache.commons.cli.Option;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.input.AutoCloseInputStream;
 
 /*
  * Transcoding Job Generator - Tool for creating Elastic Transcoder Jobs
@@ -32,6 +41,7 @@ import org.apache.commons.cli.PosixParser;
 public class TranscodingJobGenerator {
 
     private String bucketName;
+    private String filePath;
     private String pipelineId;
     private boolean verbose;
     private boolean dryRun;
@@ -62,18 +72,25 @@ public class TranscodingJobGenerator {
      */
     public TranscodingJobGenerator(String awsCredentialsProfileName,
                                    String bucketName,
+                                   String filePath,
                                    String pipelineId,
                                    boolean verbose,
                                    boolean dryRun) {
         this.bucketName = bucketName;
+        this.filePath = filePath;
         this.pipelineId = pipelineId;
         this.verbose = verbose;
         this.dryRun = dryRun;
 
+        String contentListSource = "\nbucket name=" + bucketName;
+        if (null == bucketName) {
+            contentListSource = "\nfile path=" + filePath;
+        }
+
         System.out.println("-----------------------------------------" +
                            "\nRunning Transcoding Job Generator with config:" +
                            "\nAWS profile=" + awsCredentialsProfileName +
-                           "\nbucket name=" + bucketName +
+                           contentListSource +
                            "\npipeline ID=" + pipelineId +
                            "\nverbose=" + verbose +
                            (dryRun ? "\nThis execution is a DRY RUN - no jobs will be created!" : "") +
@@ -114,64 +131,103 @@ public class TranscodingJobGenerator {
      * @throws IOException
      */
     public void run() throws IOException {
-        ContentIterator contentIterator = new ContentIterator(s3Client, bucketName);
+
+        if (null != bucketName) { // Get list of items from bucket
+            createJobs(new ContentIterator(s3Client, bucketName));
+        } else { // Get list of items from file
+            List<String> contentItems = new LinkedList<>();
+
+            File file = new File(filePath);
+            if (!file.exists()) {
+                throw new FileNotFoundException("The content item list file does not exist at " + filePath);
+            }
+
+            try (BufferedReader is = new BufferedReader(
+                new InputStreamReader(new AutoCloseInputStream(FileUtils.openInputStream(file))))) {
+
+                String line = null;
+                while ((line = is.readLine()) != null) {
+                    String contentId = line.trim();
+                    contentItems.add(contentId);
+                }
+            }
+
+            createJobs(contentItems.iterator());
+        }
+    }
+
+    private void createJobs(Iterator<String> contentIterator) {
+        int filesProcessed = 0;
+        int jobsCreated = 0;
+
         while (contentIterator.hasNext()) {
             String contentId = contentIterator.next();
+            boolean jobCreated = createJob(contentId);
+            filesProcessed++;
 
-            CreateJobRequest createJobRequest;
-
-            if (contentId.endsWith(".mp3")) { // Audio file
-                String outputKey = StringUtils.replace(contentId, ".mp3", "-a160k");
-                String playlistName = StringUtils.replace(contentId, ".mp3", "-playlist");
-
-                createJobRequest = new CreateJobRequest()
-                    .withPipelineId(pipelineId)
-                    .withInput(new JobInput().withKey(contentId))
-                    .withOutput(new CreateJobOutput().withPresetId(AUDIO_PRESET_ID)
-                                                     .withKey(outputKey)
-                                                     .withSegmentDuration(SEGMENT_DURATION))
-                    .withPlaylists(new CreateJobPlaylist().withName(playlistName)
-                                                          .withFormat(PLAYLIST_FORMAT)
-                                                          .withOutputKeys(outputKey));
-            } else if (contentId.endsWith(".mp4")) { // Video file
-                String audioOutputKey = StringUtils.replace(contentId, ".mp4", "-a160k");
-                String videoOutputKey = StringUtils.replace(contentId, ".mp4", "-v2m");
-                String playlistName = StringUtils.replace(contentId, ".mp4", "-playlist");
-
-                createJobRequest = new CreateJobRequest()
-                    .withPipelineId(pipelineId)
-                    .withInput(new JobInput().withKey(contentId))
-                    .withOutputs(new CreateJobOutput().withPresetId(AUDIO_PRESET_ID)
-                                                      .withKey(audioOutputKey)
-                                                      .withSegmentDuration(SEGMENT_DURATION),
-                                 new CreateJobOutput().withPresetId(VIDEO_PRESET_ID)
-                                                      .withKey(videoOutputKey)
-                                                      .withSegmentDuration(SEGMENT_DURATION))
-                    .withPlaylists(new CreateJobPlaylist().withName(playlistName)
-                                                          .withFormat(PLAYLIST_FORMAT)
-                                                          .withOutputKeys(audioOutputKey, videoOutputKey));
-            } else {
-                System.out.println("SKIPPING file: " + contentId +
-                                   " (it does not have a .mp3 or .mp4 extension");
-                continue; // Skip to next content item
-            }
-
-            if (dryRun) {
-                System.out.println("Transcoding Job created for: " + contentId +
-                                   "; current status: none (dryrun mode).");
-            } else { // Not a dry run, create the job
-                CreateJobResult createJobResult = transcoderClient.createJob(createJobRequest);
-                System.out.println("Transcoding Job created for: " + contentId +
-                                   "; current status: " + createJobResult.getJob().getStatus());
-                waitMs(500); // Wait half a second to limit create job requests to 2 per second
-            }
-
-            if (verbose) {
-                System.out.println("\t Job Details: " + createJobRequest.toString());
+            if (jobCreated) {
+                jobsCreated++;
             }
         }
 
-        System.out.println("\nTranscoding Job Generator process complete.");
+        System.out.println("\nTranscoding Job Generator process complete. " +
+                           filesProcessed + " files processed, " + jobsCreated + " jobs created");
+    }
+
+    private boolean createJob(String contentId) {
+        CreateJobRequest createJobRequest;
+
+        if (contentId.endsWith(".mp3")) { // Audio file
+            String outputKey = StringUtils.replace(contentId, ".mp3", "-a160k");
+            String playlistName = StringUtils.replace(contentId, ".mp3", "-playlist");
+
+            createJobRequest = new CreateJobRequest()
+                .withPipelineId(pipelineId)
+                .withInput(new JobInput().withKey(contentId))
+                .withOutput(new CreateJobOutput().withPresetId(AUDIO_PRESET_ID)
+                                                 .withKey(outputKey)
+                                                 .withSegmentDuration(SEGMENT_DURATION))
+                .withPlaylists(new CreateJobPlaylist().withName(playlistName)
+                                                      .withFormat(PLAYLIST_FORMAT)
+                                                      .withOutputKeys(outputKey));
+        } else if (contentId.endsWith(".mp4")) { // Video file
+            String audioOutputKey = StringUtils.replace(contentId, ".mp4", "-a160k");
+            String videoOutputKey = StringUtils.replace(contentId, ".mp4", "-v2m");
+            String playlistName = StringUtils.replace(contentId, ".mp4", "-playlist");
+
+            createJobRequest = new CreateJobRequest()
+                .withPipelineId(pipelineId)
+                .withInput(new JobInput().withKey(contentId))
+                .withOutputs(new CreateJobOutput().withPresetId(AUDIO_PRESET_ID)
+                                                  .withKey(audioOutputKey)
+                                                  .withSegmentDuration(SEGMENT_DURATION),
+                             new CreateJobOutput().withPresetId(VIDEO_PRESET_ID)
+                                                  .withKey(videoOutputKey)
+                                                  .withSegmentDuration(SEGMENT_DURATION))
+                .withPlaylists(new CreateJobPlaylist().withName(playlistName)
+                                                      .withFormat(PLAYLIST_FORMAT)
+                                                      .withOutputKeys(audioOutputKey, videoOutputKey));
+        } else {
+            System.out.println("SKIPPING file: " + contentId +
+                               " (it does not have a .mp3 or .mp4 extension");
+            return false; // Skip to next content item
+        }
+
+        if (dryRun) {
+            System.out.println("Transcoding Job created for: " + contentId +
+                               "; current status: none (dryrun mode).");
+        } else { // Not a dry run, create the job
+            CreateJobResult createJobResult = transcoderClient.createJob(createJobRequest);
+            System.out.println("Transcoding Job created for: " + contentId +
+                               "; current status: " + createJobResult.getJob().getStatus());
+            waitMs(500); // Wait half a second to limit create job requests to 2 per second
+        }
+
+        if (verbose) {
+            System.out.println("\t Job Details: " + createJobRequest.toString());
+        }
+
+        return true;
     }
 
     /**
@@ -199,8 +255,14 @@ public class TranscodingJobGenerator {
         Option bucketNameOption =
             new Option("b", "bucketname", true,
                        "the name of the bucket in which content to be transcoded resides");
-        bucketNameOption.setRequired(true);
+        bucketNameOption.setRequired(false);
         cmdOptions.addOption(bucketNameOption);
+
+        Option filePathOption =
+            new Option("f", "file", true,
+                       "the path to a file which has one content ID per line");
+        filePathOption.setRequired(false);
+        cmdOptions.addOption(filePathOption);
 
         // AWS Profile setup: http://docs.aws.amazon.com/cli/latest/userguide/cli-chap-getting-started.html
         Option awsProfileOption =
@@ -236,7 +298,17 @@ public class TranscodingJobGenerator {
             usage();
         }
 
-        String bucketName = cmd.getOptionValue("b");
+        String bucketName = null;
+        String filePath = null;
+        if (cmd.hasOption("b")) {
+            bucketName = cmd.getOptionValue("b");
+        } else if (cmd.hasOption("f")) {
+            filePath = cmd.getOptionValue("f");
+        } else {
+            System.out.println("Either bucket name (-b) or file (-f) must be provided");
+            usage();
+        }
+
         String awsProfile = cmd.getOptionValue("c");
         String profileId = cmd.getOptionValue("p");
 
@@ -251,7 +323,7 @@ public class TranscodingJobGenerator {
         }
 
         TranscodingJobGenerator generator =
-            new TranscodingJobGenerator(awsProfile, bucketName, profileId, verbose, dryRun);
+            new TranscodingJobGenerator(awsProfile, bucketName, filePath, profileId, verbose, dryRun);
         generator.run();
     }
 
