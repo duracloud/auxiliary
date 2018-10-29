@@ -55,6 +55,7 @@
   <modules>
     <module>prefix-update-tool</module>
     <module>bridge-report-capture-tool</module>
+    <module>snapshot-report-tool</module>
     <module>transcoding-job-generator</module>
     <module>copy-content-tool</module>
   </modules>

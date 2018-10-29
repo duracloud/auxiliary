@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<configuration>
+
+  <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+    <encoder>
+      <pattern>%-6p %d{yyyy/MM/dd HH:mm:ss} \(%F\) - %m%n</pattern>
+    </encoder>
+  </appender>
+
+  <logger name="org.duracloud.tools" level="INFO">
+    <appender-ref ref="STDOUT"/>
+  </logger>
+
+</configuration>
