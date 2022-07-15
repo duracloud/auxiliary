@@ -128,7 +128,7 @@
     <log.level>${log.level.default}</log.level>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <slf4j.version>1.7.6</slf4j.version>
-    <aws.sdk.version>1.11.393</aws.sdk.version>
+    <aws.sdk.version>1.12.261</aws.sdk.version>
     <duraspace-codestyle.version>1.1.0</duraspace-codestyle.version>
   </properties>
 
